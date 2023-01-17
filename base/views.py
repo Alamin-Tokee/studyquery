@@ -15,7 +15,10 @@ def signinPage(request):
     if request.user.is_authenticated:
         return redirect('home')
 
+    # print(request.POST)
+
     if request.method == 'POST':
+        print(request.POST)
         email = request.POST.get('email').lower()
         password = request.POST.get('password')
 
@@ -30,7 +33,7 @@ def signinPage(request):
             login(request, user)
             return redirect('home')
         else:
-            messages.error(request, 'Username or password does not exit')
+            messages.error(request, 'Username OR password does not exit')
 
     context = {'page': page}
     return render(request, 'base/login_register.html', context)
@@ -47,7 +50,9 @@ def signupPage(request):
     if request.method == 'POST':
         form = MyUserCreationForm(request.POST)
         if form.is_valid():
+            print(form)
             user = form.save(commit=False)
+            print(user)
             user.username = user.username.lower()
             user.save()
             login(request, user)
@@ -67,8 +72,8 @@ def home(request):
     topics = Topic.objects.all()[0:5]
     room_count = rooms.count()
     room_messages = Message.objects.filter(
-        Q(room__topic__name__icontains=q)[0:3]
-    )
+        Q(room__topic__name__icontains=q))[0:3]
+
     context = {'rooms': rooms, 'topics': topics,
                'room_count': room_count, 'room_messages': room_messages}
     return render(request, 'base/home.html', context)
@@ -174,13 +179,14 @@ def deleteMessage(request, pk):
 @login_required(login_url='login')
 def updateUser(request):
     user = request.user
-    form = UserForm(initial=user)
+    form = UserForm(instance=user)
 
     if request.method == 'POST':
         form = UserForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
             return redirect('user-profile', pk=user.id)
+
     return render(request, 'base/update-user.html', {'form': form})
 
 
